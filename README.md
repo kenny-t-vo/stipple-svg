@@ -165,7 +165,7 @@ the source and groups marks into one path per quantised colour.
 ```
 stipple/     image · density · sample · flow · strokes · render · params · core · cli
              filters · spatial   (numpy stand-ins for the scipy calls)
-web/         server · engine · shell · index.html · app.css · app.js
+web/         server · engine · shell · index.html · app.css · app.js · type.css · fonts
 browser/     worker · bridge · shell · build
 presets/     tests/
 ```
@@ -173,6 +173,9 @@ presets/     tests/
 `web/app.js` is the interface for both builds. It reaches everything outside
 the page through `STIPPLE_SHELL`, which is an HTTP server on the desktop and a
 Pyodide worker in the browser.
+
+`web/type.css` and `web/fonts/` are copies from the site repo,
+`kenny-t-vo/kenny-t-vo.github.io`. Edit them there, then copy them here.
 
 ## Licence
 
