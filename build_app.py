@@ -58,11 +58,12 @@ def main() -> int:
     app = ROOT / "dist" / "Stipple.app"
     print(f"\nbuilt {app}")
     print("Unsigned, so on another Mac the first launch needs right-click -> Open.")
-    print("\nNote: this bundle cannot be launched from where it was just built.")
-    print("macOS will not run an app bundle from this exFAT volume -- it does")
-    print("nothing when opened. Copy it to the internal drive, or to the other")
-    print("Mac, before launching:")
-    print(f"  cp -R '{app}' ~/Applications/")
+    if app.resolve().is_relative_to(Path("/Volumes")):
+        print("\nNote: this bundle cannot be launched from where it was just built.")
+        print("macOS will not run an app bundle from an exFAT volume -- it does")
+        print("nothing when opened. Copy it to the internal drive, or to the other")
+        print("Mac, before launching:")
+        print(f"  cp -R '{app}' ~/Applications/")
     return 0
 
 

@@ -1,7 +1,6 @@
 #!/bin/bash
 # Create the project virtualenv. Run once per machine.
-# The venv deliberately lives on the internal drive: this project sits on an
-# exFAT volume, where venvs are unreliable and which may be unmounted.
+# make_launcher.py and the README point at this venv path.
 set -euo pipefail
 
 VENV="$HOME/.local/share/stipple/venv"

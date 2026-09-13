@@ -8,11 +8,7 @@ as SVG for Illustrator.
 Open **Stipple.app** from `~/Applications` (Finder sidebar, Go > Applications,
 or Spotlight). Drag it to the Dock if you use it often.
 
-It installs there rather than beside the source because macOS will not launch
-an app bundle from this project's exFAT volume. The volume is mounted
-`noowners`, so the executable has no verifiable ownership and LaunchServices
-declines: `open` reports success and no process starts. The launcher sits on
-the internal drive and points back here. After moving the project, rerun
+The launcher points back at this folder. After moving the project, rerun
 `python3 make_launcher.py` to repoint it.
 
 From a terminal:
@@ -52,14 +48,13 @@ python3 make_launcher.py
 ```
 
 `bootstrap.sh` builds a virtualenv at `~/.local/share/stipple/venv` from
-Homebrew Python 3.12. It lives on the internal drive because virtualenvs are
-unreliable on exFAT and the volume can be unmounted.
+Homebrew Python 3.12.
 
 `make_launcher.py` installs a thin bundle that runs this source tree, so
 edits take effect on the next launch. For a bundle that runs on a Mac with no
 Python, `python3 build_app.py` writes a self-contained one to `dist/`. It is
 Apple Silicon only and unsigned, so its first launch on another machine needs
-right-click then Open. Copy it off this volume before running it.
+right-click then Open.
 
 ## The interface
 

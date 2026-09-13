@@ -6,8 +6,8 @@ folder, so edits take effect on the next launch with nothing to rebuild. For
 a self-contained bundle that runs on a machine with no Python, use
 build_app.py instead.
 
-Installs to ~/Applications, not next to the source. macOS will not launch an
-app bundle from this project's exFAT volume: it is mounted noowners, so the
+Installs to ~/Applications. macOS will not launch an app bundle from an exFAT
+volume mounted noowners, so a destination under /Volumes gets a warning: the
 executable has no verifiable ownership and LaunchServices declines silently
 -- `open` returns success and nothing happens. Verified with identical
 bundles on both filesystems: the APFS copy ran, the exFAT copy did not.
@@ -58,12 +58,10 @@ fail() {{
   exit 1
 }}
 
-# The project lives on an external volume; report that rather than failing
-# with a stack trace when it is unplugged.
 [ -d "$ROOT" ] || fail "Cannot find the project folder:
 $ROOT
 
-If it lives on an external drive, plug the drive in and try again."
+If it moved, run make_launcher.py from its new location."
 
 [ -x "$VENV/bin/python" ] || fail "The Python environment is missing.
 Run bootstrap.sh in the project folder to create it."
