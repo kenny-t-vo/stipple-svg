@@ -15,7 +15,7 @@ const SPEC = [
   ]},
   {t:'tone.', rows:[
     {type:'hist'},
-    {type:'action', l:'auto tone', act:'autoTone'},
+    {type:'action', l:'auto tone.', act:'autoTone'},
     {k:'black_point', type:'range', l:'black point', min:0, max:.95, step:.01},
     {k:'white_point', type:'range', l:'white point', min:.05, max:1, step:.01},
     {k:'contrast',    type:'range', l:'contrast',    min:-1, max:1, step:.02},
@@ -103,9 +103,8 @@ function fmt(k, v) {
   return v.toFixed(a < 1 ? 2 : a < 10 ? 2 : 1);
 }
 
-// A row's `on` names the condition under which it is live; anything else is
-// dimmed and inert. Forms: "key", "!key", "key==value". Replaces `dim`, which
-// inverted the == form and so dimmed every line control in line mode.
+// A row's `on` names the condition under which it shows; otherwise it is
+// hidden and the pane is shorter. Forms: "key", "!key", "key==value".
 function live(cond) {
   if (!cond) return true;
   const eq = cond.split('==');
@@ -156,25 +155,14 @@ function makeRow(r) {
   row.dataset.k = r.k || '';
   if (r.on) row.dataset.on = r.on;
 
-  if (r.type === 'check') {
-    row.className = 'row row--full';
-    const lab = el('label', 'check');
-    const inp = el('input'); inp.type = 'checkbox'; inp.id = 'c_' + r.k;
-    const box = el('span', 'box');
-    const txt = el('span', 't'); txt.textContent = r.l;
-    lab.append(inp, box, txt);
-    inp.addEventListener('change', () => { P[r.k] = inp.checked; changed(false); });
-    row.appendChild(lab);
-    return row;
-  }
-
-  if (r.type === 'cells') {
-    row.className = 'row row--full';
+  // a boolean is the pair on / off; choices are their own cells
+  if (r.type === 'check' || r.type === 'cells') {
+    const opts = r.type === 'check' ? [[true, 'on'], [false, 'off']] : r.opts;
     const lab = el('div', 'row__l'); lab.textContent = r.l;
     const cells = el('div', 'cells');
-    r.opts.forEach(([val, text]) => {
+    opts.forEach(([val, text]) => {
       const b = el('button'); b.type = 'button'; b.textContent = text;
-      b.dataset.val = val; b.dataset.k = r.k;
+      b.dataset.val = String(val); b.dataset.k = r.k;
       b.addEventListener('click', () => { P[r.k] = val; changed(false); });
       cells.appendChild(b);
     });
@@ -210,7 +198,7 @@ function makeRow(r) {
   inp.min = r.min; inp.max = r.max; inp.step = r.step;
   inp.addEventListener('input', () => {
     P[r.k] = parseFloat(inp.value);
-    val.textContent = readout(r);
+    setReadout(val, r);
     changed(true);                       // coarse while dragging
   });
   inp.addEventListener('change', () => changed(false));   // refine on release
@@ -244,7 +232,7 @@ function editValue(r, val, slider) {
         slider.value = P[r.k];
       }
     }
-    val.textContent = readout(r);
+    setReadout(val, r);
     if (apply) changed(false);
   };
   box.addEventListener('keydown', e => {
@@ -255,22 +243,30 @@ function editValue(r, val, slider) {
 }
 
 
-function readout(r) {
+// a figure, then its unit in the faint colour, a thin space between
+function figure(node, v, unit) {
+  node.textContent = '';
+  const n = el('span', 'num'); n.textContent = v;
+  node.appendChild(n);
+  if (unit) {
+    const u = el('span', 'unit'); u.textContent = ' ' + unit;
+    node.appendChild(u);
+  }
+}
+
+function setReadout(node, r) {
   const v = P[r.k];
-  if (r.zero && !v) return r.zero;
-  return fmt(r.k, v) + (r.unit ? ' ' + r.unit : '');
+  if (r.zero && !v) node.textContent = r.zero;
+  else figure(node, fmt(r.k, v), r.unit);
 }
 
 function syncControls() {
   SPEC.forEach(sec => sec.rows.forEach(r => {
     if (!r.k) return;
     const c = document.getElementById('c_' + r.k);
-    if (c) {
-      if (r.type === 'check') c.checked = !!P[r.k];
-      else if (c.value !== String(P[r.k])) c.value = P[r.k];
-    }
+    if (c && c.value !== String(P[r.k])) c.value = P[r.k];
     const v = document.getElementById('v_' + r.k);
-    if (v && !v.querySelector('input')) v.textContent = readout(r);
+    if (v && !v.querySelector('input')) setReadout(v, r);
     const p = document.getElementById('p_' + r.k);
     if (p) {
       const full = P[r.k] || '';
@@ -278,13 +274,11 @@ function syncControls() {
       p.title = full;                       // whole path on hover
     }
     document.querySelectorAll(`.cells button[data-k="${r.k}"]`).forEach(b => {
-      b.setAttribute('aria-pressed', String(b.dataset.val === P[r.k]));
+      b.setAttribute('aria-pressed', String(b.dataset.val === String(P[r.k])));
     });
   }));
   document.querySelectorAll('[data-on]').forEach(n => {
-    const ok = live(n.dataset.on);
-    n.style.opacity = ok ? '1' : '.34';
-    n.style.pointerEvents = ok ? '' : 'none';
+    n.hidden = !live(n.dataset.on);
   });
 }
 
@@ -322,7 +316,7 @@ async function run(coarse) {
       if (mine === seq) { detailMeta = det.meta; drawDetail(det); }
       await loadHistogram();
     }
-    if (mine === seq) status(coarse ? 'draft' : 'ready');
+    if (mine === seq) status(coarse ? 'draft.' : 'ready.');
   } catch (e) {
     status(String(e.message || e), 'err');
   } finally {
@@ -437,13 +431,13 @@ function drawDetail(res) {
   const dl = $('#detail-meta');
   dl.textContent = '';
   const rows = [
-    ['marks here', m.count.toLocaleString()],
-    ['window', (m.canvasW / 72).toFixed(2) + ' × ' + (m.canvasH / 72).toFixed(2) + ' in'],
-    ['mark size', (m.radius * 2).toFixed(3) + ' pt'],
+    ['marks here', m.count.toLocaleString(), ''],
+    ['window', (m.canvasW / 72).toFixed(2) + ' × ' + (m.canvasH / 72).toFixed(2), 'in'],
+    ['mark size', (m.radius * 2).toFixed(3), 'pt'],
   ];
-  rows.forEach(([k, v]) => {
+  rows.forEach(([k, v, u]) => {
     const dt = el('dt'); dt.textContent = k;
-    const dd = el('dd'); dd.textContent = v;
+    const dd = el('dd'); figure(dd, v, u);
     dl.append(dt, dd);
   });
 }
@@ -453,15 +447,15 @@ function showStats(m) {
   host.textContent = '';
   const full = m.fullTarget;
   const mag = m.scale > 0 ? 1 / m.scale : 1;
-  [['marks', full.toLocaleString()],
-   ['canvas', m.fullW.toFixed(2) + ' × ' + m.fullH.toFixed(2) + ' in'],
-   ['preview', m.count.toLocaleString()],
-   ['texture', mag < 1.02 ? 'actual size' : mag.toFixed(1) + '× actual'],
-   ['time', (m.elapsed * 1000).toFixed(0) + ' ms']
-  ].forEach(([k, v]) => {
+  [['marks', full.toLocaleString(), ''],
+   ['canvas', m.fullW.toFixed(2) + ' × ' + m.fullH.toFixed(2), 'in'],
+   ['preview', m.count.toLocaleString(), ''],
+   ['texture', mag < 1.02 ? 'actual size' : mag.toFixed(1) + '×', mag < 1.02 ? '' : 'actual'],
+   ['time', (m.elapsed * 1000).toFixed(0), 'ms']
+  ].forEach(([k, v, u]) => {
     const s = el('div', 'stat');
     const a = el('span', 'lbl'); a.textContent = k;
-    const b = el('b'); b.textContent = v;
+    const b = el('b'); figure(b, v, u);
     s.append(a, b); host.appendChild(s);
   });
 }
@@ -532,10 +526,11 @@ async function loadHistogram() {
     const bh = Math.round(h * Math.sqrt(v / peak));
     g.fillRect(i * bw, h - bh, Math.max(1, bw - .5), bh);
   });
-  // black and white point markers
+  // black and white point markers, one device pixel wide
+  const hair = 1 / dpr;
   g.fillStyle = '#0000ee';
-  g.fillRect(P.black_point * w, 0, 1, h);
-  g.fillRect(P.white_point * w - 1, 0, 1, h);
+  g.fillRect(P.black_point * w, 0, hair, h);
+  g.fillRect(P.white_point * w - hair, 0, hair, h);
 }
 
 // ── file pickers, export, presets ────────────────────────────────────
@@ -577,7 +572,7 @@ async function doExport() {
   status('exporting…', 'busy');
   try {
     const r = await SHELL.render(P);
-    status(`wrote ${r.name}: ${r.marks.toLocaleString()} marks, ${r.mb} MB, ${r.secs}s`);
+    status(`wrote ${r.name}: ${r.marks.toLocaleString()} marks, ${r.mb} MB, ${r.secs} s.`);
   } catch (e) {
     status(String(e.message || e), 'err');
   } finally { b.disabled = false; }
@@ -588,7 +583,7 @@ async function preset(save) {
     const j = save ? await SHELL.presetSave(P) : await SHELL.presetLoad();
     if (!j || !j.name) return;
     if (!save) { Object.assign(P, j.params); changed(false); }
-    status((save ? 'saved ' : 'loaded ') + j.name);
+    status((save ? 'saved ' : 'loaded ') + j.name + '.');
   } catch (e) { status(String(e.message || e), 'err'); }
 }
 
@@ -621,5 +616,5 @@ async function preset(save) {
   window.addEventListener('resize', () => { if (meta) schedule(false); });
 
   if (P.in_path) { await loadHistogram(); run(false); }
-  else status('choose an input image');
+  else status('choose an input image.');
 })();

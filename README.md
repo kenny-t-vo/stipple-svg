@@ -124,7 +124,7 @@ grain-following strokes into contour hatching.
 
 `presets/` holds six starting points: `fine-dots`, `dense-dots`,
 `organic-dots`, `grass`, `contour-hatch`, `plotter-lines`. Load and save them
-from the buttons below export, or from the CLI.
+from the links beside export, or from the CLI.
 
 ## Command line
 

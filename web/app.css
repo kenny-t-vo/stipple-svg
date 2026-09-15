@@ -1,15 +1,14 @@
 /* stipple: the site's type and colour, applied to a tool.
    type.css holds the tokens and loads first; nothing below restates one.
-   Redaction 35 for the display steps, Plantin (else Times) for everything
-   else, including figures, per that file. Hairlines do all the separating:
-   no shadows, gradients, or radii. */
+   Redaction 35 for the title, Plantin (else Times) for everything else,
+   figures included, per that file. Every separation is var(--hair), one
+   device pixel: no shadows, gradients, or radii. */
 
 :root{
   /* ── structure ───────────────────────────────────────────────── */
   --pane:352px;          /* control column */
   --detail:268px;        /* true-scale readout column */
   --drawer:340px;        /* the control column once it overlays */
-  --hair:1px;            /* every separation on the page */
 
   /* ── control geometry ─────────────────────────────────────────
      Physical sizes of the widgets, not spacing. Kept apart from the
@@ -17,30 +16,18 @@
   --ctl:15px;            /* slider box, colour swatch height */
   --thumb-w:7px;
   --thumb-h:11px;
-  --box:9px;             /* checkbox */
   --swatch:26px;
   --hist:38px;           /* histogram canvas */
   --field:74px;          /* inline numeric field */
   --crop:118px;          /* detail canvas beside its numbers, narrow screens */
   --kv-min:150px;
 
-  /* one step below the site's s1, for the inside of controls */
-  --s0:3px;
-
-  /* ── tracking ─────────────────────────────────────────────────
-     type.css tracks the body face; these are the two places that
-     override it. A serif needs less label tracking than a mono.   */
-  --track-label:.09em;
-  --track-display:-.012em;
-
   /* Box top to cap top for Redaction 35 at leading 1.06, from canvas
      metrics: half-leading -1.84px plus (font ascent 20 - ink ascent 15.4)
      = 2.76px at 22px. In em so it survives a size change. */
   --cap-seat:-.126em;
 
-  /* superior figures: the version tag, and the section toggle */
-  --sup-v:.62em;
-  --sup-tog:.34em;
+  --sup-v:.62em;         /* the version tag, a superior figure */
 
   /* gap between text and a line drawn near it: underlines here match the
      one type.css sets on a, and the focus ring uses the same distance */
@@ -62,36 +49,30 @@ html,body{height:100%;overflow:hidden}
   border-right:var(--hair) solid var(--rule2);
   display:flex;flex-direction:column;min-height:0;
 }
-.pane__head{padding:var(--s3) var(--s3) var(--s2)}
+.pane__head{padding:var(--s3) var(--s3) var(--s2);
+  border-bottom:var(--hair) solid var(--rule)}
 .pane__body{overflow-y:auto;overflow-x:hidden;flex:1;
-  padding:0 var(--s3) var(--s4)}
-.pane__foot{padding:var(--s2) var(--s3)}
+  padding:0 var(--s3) var(--s3)}
+/* one line of action links; the destructive one last, at the same weight */
+.pane__foot{display:flex;gap:var(--s2);align-items:baseline;flex-wrap:wrap;
+  padding:var(--s2) var(--s3) var(--s3);border-top:var(--hair) solid var(--rule)}
 
 h1{
   font:var(--t1)/1.06 var(--display);font-weight:400;
-  letter-spacing:var(--track-display);
+  letter-spacing:var(--track-t1);
   margin-top:var(--cap-seat);          /* seat cap height, not the box */
 }
-h1 .v{font:var(--t6)/1 var(--body);color:var(--faint);letter-spacing:0;
+h1 .v{font:var(--t6)/1 var(--figures);color:var(--faint);letter-spacing:0;
   font-variant-numeric:tabular-nums;
   vertical-align:var(--sup-v);margin-left:var(--s1)}
 
 /* ── sections ──────────────────────────────────────────────────────── */
 
-.sec{border-top:var(--hair) solid var(--rule);padding:var(--s2) 0 var(--s3)}
+.sec{border-top:var(--hair) solid var(--rule);padding:var(--s2) 0}
 .sec:first-child{border-top:0}
-.sec__h{
-  font:var(--t2)/1.1 var(--display);font-weight:400;
-  letter-spacing:var(--track-display);
-  margin:0 0 var(--s2);
-}
-.sec--off .sec__body{display:none}
-.sec__h .tog{
-  float:right;font:var(--t6)/1 var(--body);letter-spacing:var(--track-label);
-  color:var(--blue);cursor:pointer;text-decoration:underline;
-  text-underline-offset:var(--offset);vertical-align:var(--sup-tog);
-}
-.sec__h .tog:hover{color:var(--purple)}
+/* a group label, not a heading: the title is the one large thing */
+.sec__h{font:var(--t6)/1 var(--body);font-weight:400;
+  letter-spacing:var(--track-label);color:var(--faint);margin:var(--s1) 0}
 
 /* ── rows: label left against the rule, value right against it ─────── */
 
@@ -100,19 +81,21 @@ h1 .v{font:var(--t6)/1 var(--body);color:var(--faint);letter-spacing:0;
   gap:var(--s1);padding:var(--s0) 0;
 }
 .row__l{font-size:var(--t4);color:var(--dim)}
-.row__v{font:var(--t5)/1.5 var(--body);font-variant-numeric:tabular-nums;
+.row__v{font:var(--t5)/1.5 var(--figures);font-variant-numeric:tabular-nums;
   text-align:right;color:var(--fg)}
+.unit{color:var(--faint)}                  /* a unit is a word after its figure */
 .row__v[data-edit]{cursor:text}
-.row__v[data-edit]:hover{color:var(--blue)}
-.row__v input{font:var(--t5)/1.5 var(--body);font-variant-numeric:tabular-nums;
+.row__v[data-edit]:hover .num{color:var(--blue)}
+.row__v input{font:var(--t5)/1.5 var(--figures);font-variant-numeric:tabular-nums;
   text-align:right;width:var(--field);border-bottom-color:var(--blue);padding:0}
 
 /* A full path is three wrapped lines of noise. Show the name; keep the path
    in the tooltip and readable on hover. */
-.path{font:var(--t5)/1.5 var(--body);color:var(--dim);
+.path{font:var(--t5)/1.5 var(--figures);color:var(--dim);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl;
   text-align:left;max-width:100%}
 .row--full{grid-template-columns:1fr}
+.row--full>.btn{justify-self:start}
 
 /* Form controls default to the browser's own size, which lands outside the
    six-step scale even on elements that render no text. */
@@ -148,55 +131,35 @@ input[type=color]::-webkit-color-swatch{border:0}
 
 /* ── the one accent move: invert the chosen cell ───────────────────── */
 
-.cells{display:flex;gap:0;margin:var(--s0) 0}
+/* choices, and the pair on / off for a boolean, on the label's baseline at
+   the row's right edge */
+.cells{display:flex;gap:0;justify-self:end}
 .cells button{
-  flex:1;font:var(--t6)/1 var(--body);letter-spacing:var(--track-label);
+  min-width:40px;font:var(--t6)/1 var(--body);letter-spacing:var(--track-label);
   background:var(--bg);color:var(--fg);border:var(--hair) solid var(--rule);
-  border-right:0;padding:var(--s0) 0;cursor:pointer;
+  border-right:0;padding:var(--s0) var(--s2);cursor:pointer;
 }
 .cells button:last-child{border-right:var(--hair) solid var(--rule)}
+.cells button:hover{color:var(--blue)}
 .cells button[aria-pressed=true]{
   background:var(--blue);color:var(--bg);border-color:var(--blue)}
-
-.check{display:flex;align-items:baseline;gap:var(--s1);padding:var(--s0) 0;
-  cursor:pointer;position:relative}
-/* Visually hidden, but still focusable. It must be positioned INSIDE .check:
-   an absolutely positioned input with no positioned ancestor resolves against
-   the initial containing block, and focusing it makes the browser scroll the
-   document to wherever that lands -- which threw the whole layout off screen. */
-.check input{position:absolute;left:0;top:0;width:var(--hair);height:var(--hair);
-  opacity:0;pointer-events:none;margin:0}
-.check .box{
-  width:var(--box);height:var(--box);border:var(--hair) solid var(--fg);
-  flex:none;position:relative;top:var(--hair)}
-.check input:checked + .box{background:var(--blue);border-color:var(--blue)}
-.check input:focus-visible + .box{outline:var(--hair) solid var(--blue);
+.cells button:focus-visible{outline:var(--hair) solid var(--blue);
   outline-offset:var(--offset)}
-.check .t{font-size:var(--t4);color:var(--dim)}
-.check input:checked ~ .t{color:var(--fg)}
 
 /* ── histogram ─────────────────────────────────────────────────────── */
 
 .hist{display:block;width:100%;height:var(--hist);
   border-bottom:var(--hair) solid var(--rule);margin:0 0 var(--s1)}
 
-/* ── buttons ───────────────────────────────────────────────────────── */
+/* ── a link that acts is still a link ──────────────────────────────── */
 
 .btn{
   font:var(--t4)/1 var(--body);color:var(--blue);background:none;border:0;
   padding:0;cursor:pointer;text-decoration:underline;
-  text-underline-offset:var(--offset)}
+  text-underline-offset:var(--offset);text-decoration-thickness:1px}
 .btn:hover{color:var(--purple)}
+.btn:focus-visible{outline:var(--hair) solid var(--blue);outline-offset:var(--offset)}
 .btn:disabled{color:var(--faint);cursor:default;text-decoration:none}
-.btn--strong{
-  border:var(--hair) solid var(--rule2);color:var(--fg);text-decoration:none;
-  padding:var(--s1) 0;width:100%;font-size:var(--t3)}
-.btn--strong:hover{background:var(--blue);border-color:var(--blue);
-  color:var(--bg)}
-.btn--strong:disabled{border-color:var(--rule);color:var(--faint);
-  background:none}
-
-.btnrow{display:flex;gap:var(--s2);align-items:baseline;margin-top:var(--s1)}
 
 /* ── stage ─────────────────────────────────────────────────────────── */
 
@@ -227,10 +190,12 @@ input[type=color]::-webkit-color-swatch{border:0}
 
 .stats{display:flex;gap:var(--s3);align-items:baseline}
 .stat{display:flex;gap:var(--s1);align-items:baseline}
-.stat b{font:var(--t5)/1 var(--body);font-weight:400;
+.stat b{font:var(--t5)/1 var(--figures);font-weight:400;
   font-variant-numeric:tabular-nums}
 
-.status{font-size:var(--t4);color:var(--dim)}
+/* a line, cleared by the next state; never a toast */
+.status{font:var(--t6)/1 var(--body);letter-spacing:var(--track-label);
+  color:var(--faint)}
 .status[data-busy=true]{color:var(--blue)}
 .status[data-err=true]{color:var(--purple)}
 
@@ -241,9 +206,8 @@ input[type=color]::-webkit-color-swatch{border:0}
 .kv{display:grid;grid-template-columns:1fr auto;gap:0 var(--s2);
   font-size:var(--t4);line-height:1.62;margin-top:0}
 .kv dt{color:var(--dim)}
-.kv dd{font:var(--t5)/1.62 var(--body);font-variant-numeric:tabular-nums;
+.kv dd{font:var(--t5)/1.62 var(--figures);font-variant-numeric:tabular-nums;
   text-align:right}
-
 
 /* ── narrow screens ────────────────────────────────────────────────── */
 /*
