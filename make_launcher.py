@@ -6,7 +6,7 @@ folder, so edits take effect on the next launch with nothing to rebuild. For
 a self-contained bundle that runs on a machine with no Python, use
 build_app.py instead.
 
-Installs to ~/Applications. macOS will not launch an app bundle from an exFAT
+Installs to /Applications. macOS will not launch an app bundle from an exFAT
 volume mounted noowners, so a destination under /Volumes gets a warning: the
 executable has no verifiable ownership and LaunchServices declines silently
 -- `open` returns success and nothing happens. Verified with identical
@@ -23,7 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 VENV = Path.home() / ".local" / "share" / "stipple" / "venv"
-DEST = Path.home() / "Applications"        # must be on the internal drive
+DEST = Path("/Applications")               # must be on the internal drive
 
 
 def build(dest: Path) -> Path:

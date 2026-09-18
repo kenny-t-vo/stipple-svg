@@ -63,7 +63,7 @@ def main() -> int:
         print("macOS will not run an app bundle from an exFAT volume -- it does")
         print("nothing when opened. Copy it to the internal drive, or to the other")
         print("Mac, before launching:")
-        print(f"  cp -R '{app}' ~/Applications/")
+        print(f"  cp -R '{app}' /Applications/")
     return 0
 
 

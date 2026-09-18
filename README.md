@@ -5,7 +5,7 @@ as SVG for Illustrator.
 
 ## Running it
 
-Open **Stipple.app** from `~/Applications` (Finder sidebar, Go > Applications,
+Open **Stipple.app** from `/Applications` (Finder sidebar, Go > Applications,
 or Spotlight). Drag it to the Dock if you use it often.
 
 The launcher points back at this folder. After moving the project, rerun
