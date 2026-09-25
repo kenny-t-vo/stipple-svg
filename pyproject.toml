@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stipple-svg"
+dynamic = ["version"]
+description = "Stipple dots or flow-following strokes from a raster image or a density field, as SVG for Illustrator"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = ["numpy>=2.0", "pillow>=10.0"]
+
+[project.optional-dependencies]
+fast = ["scipy>=1.11"]
+
+[tool.setuptools]
+packages = ["stipple"]
+
+[tool.setuptools.dynamic]
+version = {attr = "stipple.__version__"}

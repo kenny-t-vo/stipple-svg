@@ -140,6 +140,24 @@ $V -m stipple.cli render --help
 Naming the output `.svgz` gzips it. Illustrator opens both. A typical run is
 9.5 MB uncompressed and 0.63 MB gzipped.
 
+## From Python
+
+`stipple.core.build(params)` runs the pipeline on an image and returns the
+marks without writing a file. `stipple.core.from_density(density, extent,
+params, mask=...)` skips the image: `density` is an array of dots per point
+squared over `extent` (x0, y0, x1, y1 in points), an optional boolean `mask`
+of the same shape keeps marks off its False cells, and from `params` only the
+sampler, spacing, dot size and seed are used. Marks come back in the extent's
+coordinates. The shared drawing tools call it to stipple a shape with a
+density that falls off from its edges.
+
+`pyproject.toml` makes the folder installable, so another project can pin a
+commit:
+
+```bash
+uv run --with "git+https://github.com/kenny-t-vo/stipple-svg@<commit>" python
+```
+
 ## Output
 
 `compound` writes every mark into one path, so Illustrator handles a single

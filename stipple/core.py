@@ -129,6 +129,54 @@ def build(p: Params, *, max_edge: int | None = None,
     )
 
 
+def from_density(density: np.ndarray, extent: tuple[float, float, float, float],
+                 p: Params | None = None, *, mask: np.ndarray | None = None,
+                 progress: Progress = None) -> Result:
+    """Marks for a density field given directly, without an image.
+
+    `density` is dots per point squared, row 0 at the extent's y0, over
+    `extent` (x0, y0, x1, y1) in points. `mask`, a boolean array of the same
+    shape, keeps marks off the cells where it is False. From `p` only the
+    sampler, its spacing, the dot size and the seed are used. Marks come back
+    in the extent's coordinates. The samplers key their grid by truncating
+    coordinates, which merges cells either side of zero, so the field is
+    sampled from a local origin and moved afterwards.
+    """
+    p = p or Params()
+    p.validate()
+    t0 = time.time()
+    dens = np.asarray(density, dtype=np.float32)
+    if dens.ndim != 2 or dens.size == 0:
+        raise ValueError("density must be a non-empty 2D array")
+    if np.any(~np.isfinite(dens)) or np.any(dens < 0):
+        raise ValueError("density must be finite and not negative")
+    x0, y0, x1, y1 = (float(v) for v in extent)
+    if x1 <= x0 or y1 <= y0:
+        raise ValueError("extent must run from x0, y0 to a larger x1, y1")
+    keep = None
+    if mask is not None:
+        keep = np.asarray(mask, dtype=bool)
+        if keep.shape != dens.shape:
+            raise ValueError("mask must have the density's shape")
+        dens = np.where(keep, dens, 0.0).astype(np.float32)
+    w, h = x1 - x0, y1 - y0
+    local = Geometry(w, h, 0.0, 0.0, w, h)
+    target = target_count(dens, local)
+    pts = S.sample(p, dens, local, target, progress=progress)
+    if keep is not None and len(pts):
+        # relaxation and top-up can carry a mark over a cell edge into the masked part
+        pts = pts[_sample_at(keep, pts, local)]
+    peak = float(dens.max())
+    dark = _sample_at(dens / peak, pts, local) if len(pts) and peak > 0 else np.zeros(len(pts), dtype=np.float32)
+    if len(pts):
+        pts = pts + np.array([x0, y0])
+    return Result(
+        points=pts, darkness=dark, colors=None, strokes=None,
+        geom=Geometry(x1, y1, x0, y0, w, h), target=target, elapsed=time.time() - t0,
+        stats={"source": (dens.shape[1], dens.shape[0]), "sampler": p.sampler},
+    )
+
+
 def generate(p: Params, *, png_dpi: int | None = None, progress: Progress = None) -> Result:
     """Full-quality run, written to `p.out_path`."""
     res = build(p, progress=progress)

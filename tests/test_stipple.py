@@ -595,3 +595,43 @@ def test_auto_levels_leaves_a_flat_image_alone(tmp_path):
     assert (black, white) == (0.0, 1.0)    # nothing to stretch
     assert 0.2 <= g <= 8.0
 
+
+
+# ── a density field given directly ───────────────────────────────────
+
+def test_density_field_reaches_its_count_in_its_extent():
+    from stipple.core import from_density
+    dens = np.full((40, 60), 0.04, dtype=np.float32)          # 60 x 40 cells over 120 x 80 pt
+    res = from_density(dens, (-50.0, 10.0, 70.0, 90.0), Params(sampler="poisson", seed=3))
+    assert abs(res.count - 0.04 * 120 * 80) <= 0.03 * 0.04 * 120 * 80
+    x, y = res.points[:, 0], res.points[:, 1]
+    assert x.min() >= -50 and x.max() <= 70 and y.min() >= 10 and y.max() <= 90
+
+
+def test_density_field_mask_keeps_marks_off_its_false_cells():
+    from stipple.core import from_density
+    dens = np.full((50, 50), 0.05, dtype=np.float32)
+    mask = np.zeros((50, 50), dtype=bool)
+    mask[:, :25] = True                                        # the left half, 0 to 50 pt
+    for sampler in ("poisson", "relaxed"):
+        res = from_density(dens, (0.0, 0.0, 100.0, 100.0), Params(sampler=sampler, seed=5, relax_iterations=4), mask=mask)
+        assert res.count > 0 and res.points[:, 0].max() <= 50.0
+
+
+def test_density_field_grades_with_its_values():
+    from stipple.core import from_density
+    dens = np.tile(np.linspace(0.0, 0.08, 64, dtype=np.float32), (32, 1))   # rising to the right
+    res = from_density(dens, (0.0, 0.0, 128.0, 64.0), Params(sampler="relaxed", seed=7, relax_iterations=6))
+    left = (res.points[:, 0] < 64).sum()
+    right = (res.points[:, 0] >= 64).sum()
+    assert right > 2.5 * left
+
+
+def test_density_field_rejects_bad_input():
+    from stipple.core import from_density
+    with pytest.raises(ValueError):
+        from_density(np.full((4, 4), -1.0), (0, 0, 4, 4))
+    with pytest.raises(ValueError):
+        from_density(np.ones((4, 4)), (0, 0, 4, 4), mask=np.ones((3, 3), bool))
+    with pytest.raises(ValueError):
+        from_density(np.ones((4, 4)), (4, 0, 0, 4))
