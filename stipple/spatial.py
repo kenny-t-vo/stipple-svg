@@ -2,8 +2,9 @@
 
 The samplers need three things from a point set: the k nearest within a
 per-point radius, the plain nearest, and a per-point radius search. cKDTree
-does all three across every core; without it a uniform grid does the same work
-in numpy. The grid is exact. The two backends disagree only on the last ulp of
+does all three, across every core for a large query and on one thread for a
+small one, where starting the pool costs more than the query (415 us against
+20 us for 30 points); without it a uniform grid does the same work in numpy. The grid is exact. The two backends disagree only on the last ulp of
 a distance, which reaches the finished marks at 1e-16 relative.
 """
 
@@ -24,6 +25,13 @@ except ImportError:                     # pragma: no cover
 #: index. Exceeding it coarsens the cell instead.
 MAX_CELLS = 4_000_000
 
+#: Queries of fewer points than this run on one thread.
+THREADS_FROM = 2000
+
+
+def _workers(n: int) -> int:
+    return -1 if n >= THREADS_FROM else 1
+
 
 class _KDTreeIndex:
     def __init__(self, pts: np.ndarray):
@@ -31,16 +39,17 @@ class _KDTreeIndex:
         self._t = cKDTree(self.data)
 
     def knn_within(self, radius: np.ndarray, k: int):
-        d, i = self._t.query(self.data, k=k + 1, workers=-1)
+        d, i = self._t.query(self.data, k=k + 1, workers=_workers(len(self.data)))
         d, i = d[:, 1:], i[:, 1:]
         return np.where(d <= radius[:, None], d, np.inf), i
 
     def nearest(self, q: np.ndarray):
-        return self._t.query(np.asarray(q, dtype=np.float64), workers=-1)
+        q = np.asarray(q, dtype=np.float64)
+        return self._t.query(q, workers=_workers(len(q)))
 
     def ball(self, q: np.ndarray, radii: np.ndarray):
-        return self._t.query_ball_point(np.asarray(q, dtype=np.float64),
-                                        radii, workers=-1)
+        q = np.asarray(q, dtype=np.float64)
+        return self._t.query_ball_point(q, radii, workers=_workers(len(q)))
 
 
 class _GridIndex:
