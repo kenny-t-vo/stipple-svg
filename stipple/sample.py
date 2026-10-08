@@ -209,8 +209,10 @@ def poisson_disk(
                 continue
             r_cand = _sample_field(spacing, batch[:, 0], batch[:, 1], geom)
 
-        # Resolve conflicts inside the surviving batch, greedily.
-        order = np.argsort(-r_cand)          # place sparse regions first
+        # Resolve conflicts inside the surviving batch, greedily, sparse
+        # regions first. The sort is stable: numpy's default one leaves equal
+        # radii in an order that depends on the CPU.
+        order = np.argsort(-r_cand, kind="stable")
         batch, r_cand = batch[order], r_cand[order]
         bt = spatial.neighbours(batch)
         dead = np.zeros(len(batch), dtype=bool)

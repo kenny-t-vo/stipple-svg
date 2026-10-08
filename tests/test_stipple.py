@@ -159,6 +159,28 @@ def test_different_seeds_differ(base):
     assert not np.array_equal(a, build(base).points)
 
 
+def test_poisson_keeps_equal_radii_in_batch_order(monkeypatch):
+    """numpy's default sort leaves equal keys in an order that depends on the
+    CPU (x86-simd-sort where AVX2 is present, an introsort elsewhere), so the
+    batch is sorted stably: a default sort that reverses ties must not change
+    the marks."""
+    from stipple import sample as S
+    from stipple.density import Geometry
+    dens = np.full((40, 60), 0.05, dtype=np.float32)
+    geom = Geometry(60.0, 40.0, 0.0, 0.0, 60.0, 40.0)
+    want = S.poisson_disk(dens, geom, 80, 0.5, np.random.default_rng(3))
+    argsort = np.argsort
+
+    def ties_reversed(a, *args, kind=None, **kw):
+        if kind == "stable":
+            return argsort(a, *args, kind=kind, **kw)
+        return np.lexsort((-np.arange(len(a)), a))
+
+    monkeypatch.setattr(np, "argsort", ties_reversed)
+    got = S.poisson_disk(dens, geom, 80, 0.5, np.random.default_rng(3))
+    assert np.array_equal(want, got)
+
+
 def test_relaxation_improves_spacing_uniformity(base):
     """Relaxation must reduce the spread of nearest-neighbour distances."""
     base.sampler = "classic"
