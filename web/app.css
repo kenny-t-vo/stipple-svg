@@ -1,7 +1,7 @@
 /* stipple: the site's type and colour, applied to a tool.
    type.css holds the tokens and loads first; nothing below restates one.
-   Redaction 35 for the title, Plantin (else Times) for everything else,
-   figures included, per that file. Every separation is var(--hair), one
+   Hiep Hoa 35 for the title, Long An for everything else, figures
+   included, per that file. Every separation is var(--hair), one
    device pixel: no shadows, gradients, or radii. */
 
 :root{
@@ -22,7 +22,8 @@
   --crop:118px;          /* detail canvas beside its numbers, narrow screens */
   --kv-min:150px;
 
-  /* Box top to cap top for Redaction 35 at leading 1.06, from canvas
+  /* Box top to cap top for Hiep Hoa 35 (Redaction 35's metrics, checked
+     2026-10-09) at leading 1.06, from canvas
      metrics: half-leading -1.84px plus (font ascent 20 - ink ascent 15.4)
      = 2.76px at 22px. In em so it survives a size change. */
   --cap-seat:-.126em;

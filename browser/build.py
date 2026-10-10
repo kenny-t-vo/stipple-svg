@@ -31,7 +31,7 @@ def build() -> Path:
                 ROOT / "web" / "app.js", HERE / "shell.js", HERE / "worker.js"):
         shutil.copyfile(src, DIST / src.name)
 
-    # type.css reaches the display face at fonts/, relative to itself.
+    # type.css reaches its faces at fonts/, relative to itself.
     fonts = DIST / "fonts"
     fonts.mkdir()
     for src in sorted((ROOT / "web" / "fonts").iterdir()):
