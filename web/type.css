@@ -115,11 +115,13 @@
 
   /* body tracking. Long An at 0 sets as Plantin did at -10 (-.01em).
      the display face is not affected: every rule using --display
-     declares its own letter-spacing, from the two display values. */
+     declares its own letter-spacing, from the two display values.
+     those are 0: browsers drop ligatures (Hiep Hoa's ff, fi, fl, ffi,
+     ffl) under any letter-spacing. */
   --track:0;
   --track-label:.09em;     /* labels at t6. a serif needs less than a mono */
-  --track-t1:-.012em;      /* the display face at t1 */
-  --track-t2:.004em;       /* the display face at t2 */
+  --track-t1:0;            /* the display face at t1 */
+  --track-t2:0;            /* the display face at t2 */
 }
 
 @media (max-resolution:1.5dppx){ :root{ --hair:1px; } }
